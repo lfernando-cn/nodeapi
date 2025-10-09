@@ -1,0 +1,71 @@
+{
+  
+  "name": "apinode",
+  
+  "version": "1.0.0",
+  
+  "description": "* Node.js 22 ou superior - Conferir a versão: node -v\r * MySQL 8 ou superior - Conferir a versão: mysql --version",
+  
+  "main": "index.js",
+  
+  "scripts": {
+  
+    
+  "build": "tst",
+  
+    
+  "start": "node dist/index.js",
+  
+    
+  "watch": "tsc --watch",
+  
+    
+  "start:watch": "concurrently \"npm run watch\" \"node --watch dist/index.js\"",
+  
+    
+  "test": "echo \"Error: no test specified\" && exit 1"
+  
+  },
+  
+  "author": "",
+  
+  "license": "ISC",
+  
+  "dependencies": {
+  
+    
+  "dotenv": "^17.2.3",
+  
+    
+  "express": "^5.1.0",
+  
+    
+  "mysql2": "^3.15.2",
+  
+    
+  "reflect-metadata": "^0.2.2",
+  
+    
+  "typeorm": "^0.3.27"
+  
+  },
+  
+  "devDependencies": {
+  
+    
+  "@types/dotenv": "^6.1.1",
+  
+    
+  "@types/express": "^5.0.3",
+  
+    
+  "@types/node": "^22.18.8",
+  
+    
+  "concurrently": "^9.2.1",
+  
+    
+  "ts-node": "^10.9.2"
+  
+  }
+}
