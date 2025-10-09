@@ -14,7 +14,7 @@ export class PaginationService{
         repository: Repository<T>,
         page: number = 1,
         limite: number = 10,
-        order: FindOptionsOrder<T> = {} //Se vai ordenar crescente ou descrecente
+        order: FindOptionsOrder<T> = {} 
 
     ): Promise<PaginationResult<T>>{
 
