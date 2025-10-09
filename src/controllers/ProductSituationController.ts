@@ -32,7 +32,7 @@ router.get("/product_situations",async(req:Request, res:Response)=>{
 
   }catch(error){
     res.status(500).json({
-        message : "Erro ao Listar os produtos!",
+        message : "Erro ao Listar as situações de produtos!",
       });
       return
   }
@@ -50,7 +50,7 @@ router.get("/product_situations/:id",async(req:Request, res:Response)=>{
 
     if(!productSituation){
       res.status(404).json({
-        message : "Produto não encontrada!",
+        message : "Situação de Produto não encontrada!",
       });
       return
 
@@ -61,7 +61,7 @@ router.get("/product_situations/:id",async(req:Request, res:Response)=>{
 
   }catch(error){
     res.status(500).json({
-        message : "Erro ao Visualizar os produtos!",
+        message : "Erro ao Visualizar as situações de produtos!",
       });
       return
   }
@@ -81,14 +81,14 @@ router.post("/product_situations",async(req:Request, res:Response)=>{
       await productSituationRepository.save(newProductSituation); //Isso que irá salvar no banco de dados
 
       res.status(201).json({
-        message : "Produto cadastrado com sucesso!",
+        message : "Situação de Produto cadastrado com sucesso!",
         situation: newProductSituation,
       });
 
     }catch(error){
 
        res.status(500).json({
-        message : "Erro ao cadastrar a produto!",
+        message : "Erro ao cadastrar a situação de produto!",
       });
 
     }
@@ -108,7 +108,7 @@ router.put("/product_situations/:id",async(req:Request, res:Response)=>{
 
     if(!productSituation){ //Se passar um ID que não exite ele passa a seguinte mensagem
       res.status(404).json({
-        message : "Produto não encontrada!",
+        message : "Situação de Produto não encontrada!",
       });
       return
     }
@@ -120,14 +120,14 @@ router.put("/product_situations/:id",async(req:Request, res:Response)=>{
     const updateProductSituation = await productSituationRepository.save(productSituation);
 
     res.status(200).json({
-      messagem: "Produto atualizado com sucesso!",
+      messagem: "Situação de Produto atualizado com sucesso!",
       product: updateProductSituation,
     }); 
     
 
   }catch(error){
     res.status(500).json({
-        message : "Erro ao Atualizar o produto!",
+        message : "Erro ao Atualizar a situação de produto!",
       });
       return
   }
@@ -145,7 +145,7 @@ router.delete("/product_situations/:id",async(req:Request, res:Response)=>{
 
     if(!productSituation){ //Se passar um ID que não exite ele passa a seguinte mensagem
       res.status(404).json({
-        message : "Produto não encontrado!",
+        message : "Situaçaõ de Produto não encontrado!",
       });
       return
     }
@@ -154,13 +154,13 @@ router.delete("/product_situations/:id",async(req:Request, res:Response)=>{
     await productSituationRepository.remove(productSituation);
 
     res.status(200).json({
-      messagem: "Produto foi removido com sucesso!",
+      messagem: "Situação de Produto foi removido com sucesso!",
     }); 
     
 
   }catch(error){
     res.status(500).json({
-        message : "Erro ao Atualizar o produto!",
+        message : "Erro ao Atualizar a situação de produto!",
       });
       return
   }

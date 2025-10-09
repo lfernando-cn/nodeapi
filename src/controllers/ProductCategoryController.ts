@@ -29,7 +29,7 @@ router.get("/productCategory",async(req:Request, res:Response)=>{
 
   }catch(error){
     res.status(500).json({
-        message : "Erro ao Listar os produtos!",
+        message : "Erro ao Listar as Categoria de Produto!",
       });
       return
   }
@@ -47,7 +47,7 @@ router.get("/productCategory/:id",async(req:Request, res:Response)=>{
 
     if(!productCategory){
       res.status(404).json({
-        message : "Produto não encontrada!",
+        message : "Categoria de Produto não encontrada!",
       });
       return
 
@@ -58,7 +58,7 @@ router.get("/productCategory/:id",async(req:Request, res:Response)=>{
 
   }catch(error){
     res.status(500).json({
-        message : "Erro ao Visualizar os produtos!",
+        message : "Erro ao Visualizar as Categoria de Produto!",
       });
       return
   }
@@ -76,14 +76,14 @@ router.post("/productCategory",async(req:Request, res:Response)=>{
       await productCategoryRepository.save(newProductCategory); //Isso que irá salvar no banco de dados
 
       res.status(201).json({
-        message : "Produto cadastrado com sucesso!",
+        message : "Categoria de Produto cadastrada com sucesso!",
         situation: newProductCategory,
       });
 
     }catch(error){
 
        res.status(500).json({
-        message : "Erro ao cadastrar a produto!",
+        message : "Erro ao cadastrar a Categoria de produto!",
       });
 
     }
@@ -112,14 +112,14 @@ router.put("/productCategory/:id",async(req:Request, res:Response)=>{
     const updateProductCategory = await productCategoryRepository.save(productCategory);
 
     res.status(200).json({
-      messagem: "Produto atualizado com sucesso!",
+      messagem: "Categoria de Produto atualizada com sucesso!",
       product: updateProductCategory,
     }); 
     
 
   }catch(error){
     res.status(500).json({
-        message : "Erro ao Atualizar o produto!",
+        message : "Erro ao Atualizar a Categoria do produto!",
       });
       return
   }
@@ -136,7 +136,7 @@ router.delete("/productCategory/:id",async(req:Request, res:Response)=>{
 
     if(!productCategory){ //Se passar um ID que não exite ele passa a seguinte mensagem
       res.status(404).json({
-        message : "Produto não encontrado!",
+        message : "Categoria de Produto não encontrado!",
       });
       return
     }
@@ -144,13 +144,13 @@ router.delete("/productCategory/:id",async(req:Request, res:Response)=>{
     await productCategoryRepository.remove(productCategory);
 
     res.status(200).json({
-      messagem: "Produto foi removido com sucesso!",
+      messagem: "Categoria de Produto foi removido com sucesso!",
     }); 
     
 
   }catch(error){
     res.status(500).json({
-        message : "Erro ao Atualizar o produto!",
+        message : "Erro ao Atualizar a Categoria do produto!",
       });
       return
   }
