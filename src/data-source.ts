@@ -8,8 +8,6 @@ import { ProductSituation } from "./entity/ProductSituation";
 
 
 import dotenv from "dotenv";
-
-
 dotenv.config(); 
 
 const dialect = process.env.DB_DIALECT ?? "mysql" ;
@@ -27,7 +25,6 @@ export const AppDataSource = new DataSource({
     subscribers: [],
     migrations: [__dirname + "/migration/*.js"], 
 });
-
 
 AppDataSource.initialize().then(()=>{
   console.log ("Conexão do banco de dados realizada com sucesso!")
