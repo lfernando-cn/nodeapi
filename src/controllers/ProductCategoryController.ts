@@ -5,29 +5,26 @@ import { ProductCategory } from "../entity/ProductCategory";
 import { PaginationService } from "../services/PaginationServices"; //Confirmar se posso usar a mesma pagina Service
 
 
-//Criar a aplicação Express
+
 const router = express.Router();
 
 
-// Criar a Lista
+
 router.get("/productCategory",async(req:Request, res:Response)=>{
   try{
 
-    //Obter o repositório da entidade Product
+    
     const productCategoryRepository = AppDataSource.getRepository(ProductCategory);
 
-    //Receber o número da página e definir página 1 como padrão
     const page = Number(req.query.page) || 1;
 
-    //Definir o limite de registros por página
     const limite = Number(req.query.limite) || 10;
 
 
-    // Serviço de Paginação
     const result = await PaginationService.paginate(productCategoryRepository, page, limite, {id: "DESC"});
 
-    //Retornar a resposta com os dados e informações da paginação
-    res.status(200).json(result); //Lista todos os dados do banco
+    
+    res.status(200).json(result); 
     return
 
   }catch(error){
@@ -38,7 +35,7 @@ router.get("/productCategory",async(req:Request, res:Response)=>{
   }
 });
 
-// Criar a Visualização do item cadastrado em situação
+
 router.get("/productCategory/:id",async(req:Request, res:Response)=>{
   try{
 
@@ -56,7 +53,7 @@ router.get("/productCategory/:id",async(req:Request, res:Response)=>{
 
     }
 
-    res.status(200).json(productCategory); //Lista todos os dados do banco
+    res.status(200).json(productCategory); 
     return
 
   }catch(error){
@@ -67,7 +64,7 @@ router.get("/productCategory/:id",async(req:Request, res:Response)=>{
   }
 });
 
-// Cadastra item no banco de dados
+
 router.post("/productCategory",async(req:Request, res:Response)=>{
 
     try{
@@ -92,7 +89,6 @@ router.post("/productCategory",async(req:Request, res:Response)=>{
     }
 });
 
-// Faz a atualização do item cadastrado 
 router.put("/productCategory/:id",async(req:Request, res:Response)=>{
   try{
 
@@ -111,10 +107,8 @@ router.put("/productCategory/:id",async(req:Request, res:Response)=>{
       return
     }
 
-    //Atualiza os dados
     productCategoryRepository.merge(productCategory, data);
 
-    //Salvar as alterações de dados
     const updateProductCategory = await productCategoryRepository.save(productCategory);
 
     res.status(200).json({
@@ -131,7 +125,6 @@ router.put("/productCategory/:id",async(req:Request, res:Response)=>{
   }
 });
 
-// Remove o item cadastrado no banco de dados
 router.delete("/productCategory/:id",async(req:Request, res:Response)=>{
   try{
 
@@ -148,7 +141,6 @@ router.delete("/productCategory/:id",async(req:Request, res:Response)=>{
       return
     }
 
-    //Remove os dados no banco
     await productCategoryRepository.remove(productCategory);
 
     res.status(200).json({
