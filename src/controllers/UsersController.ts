@@ -7,9 +7,8 @@ import { PaginationService } from "../services/PaginationServices";
 
 const router = express.Router();
 
-// ===================================================================
 // Listar usuários com paginação
-// ===================================================================
+
 router.get("/users", async (req: Request, res: Response) => {
   try {
     const userRepository = AppDataSource.getRepository(User);
@@ -29,9 +28,9 @@ router.get("/users", async (req: Request, res: Response) => {
   }
 });
 
-// ===================================================================
+
 // Buscar usuário por ID
-// ===================================================================
+
 router.get("/users/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -60,9 +59,8 @@ router.get("/users/:id", async (req: Request, res: Response) => {
   }
 });
 
-// ===================================================================
 // Cadastrar novo usuário
-// ===================================================================
+
 router.post("/users", async (req: Request, res: Response) => {
   try {
     const data = req.body;
@@ -98,9 +96,9 @@ router.post("/users", async (req: Request, res: Response) => {
   }
 });
 
-// ===================================================================
+
 // Atualizar usuário
-// ===================================================================
+
 router.put("/users/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -117,7 +115,7 @@ router.put("/users/:id", async (req: Request, res: Response) => {
       return;
     }
 
-    // Se a situação for alterada, validar o ID informado
+
     if (data.situationId) {
       const situation = await situationRepository.findOneBy({ id: data.situationId });
       if (!situation) {
@@ -144,9 +142,9 @@ router.put("/users/:id", async (req: Request, res: Response) => {
   }
 });
 
-// ===================================================================
+
 // Deletar usuário
-// ===================================================================
+
 router.delete("/users/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

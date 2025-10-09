@@ -3,6 +3,7 @@ import CreateSituationSeeds from "./seeds/CreateSituationSeeds";
 import CreateProductSituationSeeds from "./seeds/CreateProductSituationSeeds";
 import CreateProductCategorySeeds from "./seeds/CreateProductCategorySeeds";
 import CreateProductSeeds from "./seeds/CreateProductSeeds";
+import CreateUserSeeds from "./seeds/CreateUserSeeds";
 
 const runSeeds = async() =>{
     console.log("Conectando ao banco de dados...")
@@ -17,6 +18,7 @@ const runSeeds = async() =>{
         const productSituationSeeds = new CreateProductSituationSeeds();
         const productCategorySeeds = new CreateProductCategorySeeds();
         const productProductSeeds = new CreateProductSeeds();
+        const userSeeds = new CreateUserSeeds();
 
 
         
@@ -24,6 +26,7 @@ const runSeeds = async() =>{
         await productSituationSeeds.run(AppDataSource);
         await  productCategorySeeds.run(AppDataSource);
         await productProductSeeds.run(AppDataSource);
+        await userSeeds.run(AppDataSource);
 
         console.log("Todas as Seeds foram executadas com sucesso!");
 

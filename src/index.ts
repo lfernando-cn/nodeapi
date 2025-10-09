@@ -12,6 +12,7 @@ import SituationsController from "./controllers/SituationsController";
 import ProductController from "./controllers/ProductController";
 import ProductSituationController from "./controllers/ProductSituationController";
 import ProductCategoryController from "./controllers/ProductCategoryController";
+import UsersController from "./controllers/UsersController";
 
 
 //Criar as rotas
@@ -19,6 +20,8 @@ app.use("/", SituationsController)
 app.use("/", ProductController)
 app.use ("/", ProductCategoryController)
 app.use ("/", ProductSituationController)
+app.use("/", UsersController)
+
 
 
 //Iniciar o servidor 
