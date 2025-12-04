@@ -227,6 +227,86 @@ router.put("/users/:id", async (req: Request, res: Response) => {
     return;
   }
 });
+// ============================
+//  ATUALIZAR SENHA DO USUÁRIO
+// ============================   
+
+router.put("/users/:id/password", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // VALIDAR CAMPOS
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        message: "Erro de validação",
+        errors: [
+          "currentPassword é obrigatório",
+          "newPassword é obrigatório",
+          "confirmPassword é obrigatório",
+        ],
+      });
+    }
+
+    // VALIDAR SE AS SENHAS COINCIDEM
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "Erro de validação",
+        errors: ["A nova senha e confirmação não coincidem!"],
+      });
+    }
+
+    // VALIDAR TAMANHO MÍNIMO DA NOVA SENHA
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "Erro de validação",
+        errors: ["A nova senha deve ter pelo menos 6 caracteres."],
+      });
+    }
+
+    const userRepository = AppDataSource.getRepository(User);
+
+    // BUSCAR USUÁRIO
+    const user = await userRepository.findOneBy({ id: parseInt(id) });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Usuário não encontrado!",
+      });
+    }
+
+    // VERIFICAR SENHA ATUAL
+    const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!passwordMatch) {
+      return res.status(400).json({
+        message: "Senha atual incorreta!",
+      });
+    }
+
+    // CRIPTOGRAFAR NOVA SENHA
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // ATUALIZAR SENHA
+    user.password = hashedPassword;
+    const updatedUser = await userRepository.save(user);
+
+    res.status(200).json({
+      message: "Senha atualizada com sucesso!",
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+      },
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Erro ao atualizar a senha!",
+    });
+    return;
+  }
+});
 
 // ============================
 //  DELETAR USUÁRIO
