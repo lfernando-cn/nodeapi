@@ -1,161 +1,170 @@
-// importar a biblioteca do Express
-import express, {Request, Response} from "express";
+import express, { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { ProductCategory } from "../entity/ProductCategory";
-import { PaginationService } from "../services/PaginationServices"; //Confirmar se posso usar a mesma pagina Service
-
-
+import { PaginationService } from "../services/PaginationServices";
+import * as yup from "yup";
 
 const router = express.Router();
 
+// ==========================
+//     SCHEMAS DE VALIDAÇÃO
+// ==========================
+const productCategorySchema = yup.object({
+  nameProductCategory: yup
+    .string()
+    .required("O campo nameProductCategory é obrigatório.")
+    .min(3, "O nome deve ter pelo menos 3 caracteres.")
+    .max(255, "O nome deve ter no máximo 255 caracteres."),
+});
 
+const updateProductCategorySchema = productCategorySchema.partial();
 
-router.get("/productCategory",async(req:Request, res:Response)=>{
-  try{
-
-    
-    const productCategoryRepository = AppDataSource.getRepository(ProductCategory);
+// ==========================
+// LISTAR CATEGORIAS
+// ==========================
+router.get("/productCategory", async (req: Request, res: Response) => {
+  try {
+    const repo = AppDataSource.getRepository(ProductCategory);
 
     const page = Number(req.query.page) || 1;
-
     const limite = Number(req.query.limite) || 10;
 
+    const result = await PaginationService.paginate(repo, page, limite, { id: "DESC" });
 
-    const result = await PaginationService.paginate(productCategoryRepository, page, limite, {id: "DESC"});
+    res.status(200).json(result);
 
-    
-    res.status(200).json(result); 
-    return
-
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Listar as Categoria de Produto!",
-      });
-      return
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao Listar as Categorias de Produto!" });
   }
 });
 
+// ==========================
+// VISUALIZAR CATEGORIA
+// ==========================
+router.get("/productCategory/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
-router.get("/productCategory/:id",async(req:Request, res:Response)=>{
-  try{
+    const repo = AppDataSource.getRepository(ProductCategory);
 
-    const {id} = req.params;
+    const category = await repo.findOneBy({ id: parseInt(id) });
 
-    const productCategoryRepository = AppDataSource.getRepository(ProductCategory);
-
-    const productCategory = await productCategoryRepository.findOneBy({id : parseInt(id)})
-
-    if(!productCategory){
-      res.status(404).json({
-        message : "Categoria de Produto não encontrada!",
-      });
-      return
-
+    if (!category) {
+      return res.status(404).json({ message: "Categoria de Produto não encontrada!" });
     }
 
-    res.status(200).json(productCategory); 
-    return
+    res.status(200).json(category);
 
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Visualizar as Categoria de Produto!",
-      });
-      return
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao Visualizar a Categoria de Produto!" });
   }
 });
 
+// ==========================
+// CADASTRAR CATEGORIA
+// ==========================
+router.post("/productCategory", async (req: Request, res: Response) => {
+  try {
+    const data = req.body;
 
-router.post("/productCategory",async(req:Request, res:Response)=>{
+    // Validação Yup
+    await productCategorySchema.validate(data, { abortEarly: false });
 
-    try{
-      var data = req.body;
+    const repo = AppDataSource.getRepository(ProductCategory);
 
-      const productCategoryRepository = AppDataSource.getRepository(ProductCategory)
-      const newProductCategory = productCategoryRepository.create(data);
+    const newCategory = repo.create(data);
+    await repo.save(newCategory);
 
-      await productCategoryRepository.save(newProductCategory); //Isso que irá salvar no banco de dados
+    res.status(201).json({
+      message: "Categoria de Produto cadastrada com sucesso!",
+      productCategory: newCategory,
+    });
 
-      res.status(201).json({
-        message : "Categoria de Produto cadastrada com sucesso!",
-        situation: newProductCategory,
+  } catch (error: any) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Erro de validação!",
+        errors: error.errors,
       });
-
-    }catch(error){
-
-       res.status(500).json({
-        message : "Erro ao cadastrar a Categoria de produto!",
-      });
-
     }
+
+    res.status(500).json({
+      message: "Erro ao cadastrar a Categoria de Produto!",
+    });
+  }
 });
 
-router.put("/productCategory/:id",async(req:Request, res:Response)=>{
-  try{
+// ==========================
+// ATUALIZAR CATEGORIA
+// ==========================
+router.put("/productCategory/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
 
-    const {id} = req.params;
+    await updateProductCategorySchema.validate(data, { abortEarly: false });
 
-    var data = req.body;
+    const repo = AppDataSource.getRepository(ProductCategory);
 
-    const productCategoryRepository = AppDataSource.getRepository(ProductCategory);
+    const category = await repo.findOneBy({ id: parseInt(id) });
 
-    const productCategory = await productCategoryRepository.findOneBy({id : parseInt(id)}) //Busca pelo ID digitado
-
-    if(!productCategory){ //Se passar um ID que não exite ele passa a seguinte mensagem
-      res.status(404).json({
-        message : "Produto não encontrada!",
+    if (!category) {
+      return res.status(404).json({
+        message: "Categoria de Produto não encontrada!",
       });
-      return
     }
 
-    productCategoryRepository.merge(productCategory, data);
-
-    const updateProductCategory = await productCategoryRepository.save(productCategory);
+    repo.merge(category, data);
+    const updated = await repo.save(category);
 
     res.status(200).json({
-      messagem: "Categoria de Produto atualizada com sucesso!",
-      product: updateProductCategory,
-    }); 
-    
+      message: "Categoria de Produto atualizada com sucesso!",
+      productCategory: updated,
+    });
 
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Atualizar a Categoria do produto!",
+  } catch (error: any) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Erro de validação!",
+        errors: error.errors,
       });
-      return
-  }
-});
-
-router.delete("/productCategory/:id",async(req:Request, res:Response)=>{
-  try{
-
-    const {id} = req.params;
-
-    const productCategoryRepository = AppDataSource.getRepository(ProductCategory);
-
-    const productCategory = await productCategoryRepository.findOneBy({id : parseInt(id)}) //Busca pelo ID digitado
-
-    if(!productCategory){ //Se passar um ID que não exite ele passa a seguinte mensagem
-      res.status(404).json({
-        message : "Categoria de Produto não encontrado!",
-      });
-      return
     }
 
-    await productCategoryRepository.remove(productCategory);
-
-    res.status(200).json({
-      messagem: "Categoria de Produto foi removido com sucesso!",
-    }); 
-    
-
-  }catch(error){
     res.status(500).json({
-        message : "Erro ao Atualizar a Categoria do produto!",
-      });
-      return
+      message: "Erro ao atualizar a Categoria de Produto!",
+    });
   }
 });
 
+// ==========================
+// REMOVER CATEGORIA
+// ==========================
+router.delete("/productCategory/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
-//Exportar a instrução da rota
-export default router
+    const repo = AppDataSource.getRepository(ProductCategory);
+
+    const category = await repo.findOneBy({ id: parseInt(id) });
+
+    if (!category) {
+      return res.status(404).json({
+        message: "Categoria de Produto não encontrada!",
+      });
+    }
+
+    await repo.remove(category);
+
+    res.status(200).json({
+      message: "Categoria de Produto removida com sucesso!",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Erro ao remover a Categoria de Produto!",
+    });
+  }
+});
+
+// EXPORTAR ROTAS
+export default router;
