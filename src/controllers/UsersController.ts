@@ -8,7 +8,6 @@ import { PaginationService } from "../services/PaginationServices";
 const router = express.Router();
 
 // Listar usuários com paginação
-
 router.get("/users", async (req: Request, res: Response) => {
   try {
     const userRepository = AppDataSource.getRepository(User);
@@ -16,7 +15,12 @@ router.get("/users", async (req: Request, res: Response) => {
     const page = Number(req.query.page) || 1;
     const limite = Number(req.query.limite) || 10;
 
-    const result = await PaginationService.paginate(userRepository, page, limite, { id: "DESC" });
+    const result = await PaginationService.paginate(
+      userRepository,
+      page,
+      limite,
+      { id: "DESC" }
+    );
 
     res.status(200).json(result);
     return;
@@ -28,9 +32,7 @@ router.get("/users", async (req: Request, res: Response) => {
   }
 });
 
-
 // Buscar usuário por ID
-
 router.get("/users/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -39,7 +41,7 @@ router.get("/users/:id", async (req: Request, res: Response) => {
 
     const user = await userRepository.findOne({
       where: { id: parseInt(id) },
-      relations: ["situation"], // Inclui a relação com Situation
+      relations: ["situation"], 
     });
 
     if (!user) {
@@ -60,15 +62,16 @@ router.get("/users/:id", async (req: Request, res: Response) => {
 });
 
 // Cadastrar novo usuário
-
 router.post("/users", async (req: Request, res: Response) => {
   try {
     const data = req.body;
     const userRepository = AppDataSource.getRepository(User);
     const situationRepository = AppDataSource.getRepository(Situation);
 
-    // Verificar se a situação informada existe
-    const situation = await situationRepository.findOneBy({ id: data.situationId });
+    const situation = await situationRepository.findOneBy({
+      id: data.situationId,
+    });
+
     if (!situation) {
       res.status(400).json({
         message: "Situação informada não existe!",
@@ -96,9 +99,7 @@ router.post("/users", async (req: Request, res: Response) => {
   }
 });
 
-
 // Atualizar usuário
-
 router.put("/users/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -108,6 +109,7 @@ router.put("/users/:id", async (req: Request, res: Response) => {
     const situationRepository = AppDataSource.getRepository(Situation);
 
     const user = await userRepository.findOneBy({ id: parseInt(id) });
+
     if (!user) {
       res.status(404).json({
         message: "Usuário não encontrado!",
@@ -115,15 +117,18 @@ router.put("/users/:id", async (req: Request, res: Response) => {
       return;
     }
 
-
     if (data.situationId) {
-      const situation = await situationRepository.findOneBy({ id: data.situationId });
+      const situation = await situationRepository.findOneBy({
+        id: data.situationId,
+      });
+
       if (!situation) {
         res.status(400).json({
           message: "Situação informada não existe!",
         });
         return;
       }
+
       data.situation = situation;
     }
 
@@ -142,14 +147,13 @@ router.put("/users/:id", async (req: Request, res: Response) => {
   }
 });
 
-
 // Deletar usuário
-
 router.delete("/users/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     const userRepository = AppDataSource.getRepository(User);
+
     const user = await userRepository.findOneBy({ id: parseInt(id) });
 
     if (!user) {
