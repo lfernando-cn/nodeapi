@@ -12,6 +12,9 @@ export class Product {
     @Column({length: 255})
     nameProduct!: string;
 
+    @Column({ name: 'slug', unique: true })
+    Slug!: string;
+
     @Column({ name: 'productSituationId' }) 
     productSituationId!: number;
 

@@ -2,6 +2,7 @@ import { DataSource } from "typeorm";
 import { Product } from "../entity/Product";
 import { ProductSituation } from "../entity/ProductSituation";
 import { ProductCategory } from "../entity/ProductCategory";
+import slugify from "slugify";
 
 export default class CreateProductSeeds {
 
@@ -33,17 +34,21 @@ export default class CreateProductSeeds {
             { 
                 nameProduct: "Gin de 10",
                 productSituationId: activeSituation.id,
-                productCategoryId: electronicsCategory.id 
+                productCategoryId: electronicsCategory.id,
+                Slug: "gin-de-10"
+                
             },
             { 
                 nameProduct: "Smirnoff",
                 productSituationId: activeSituation.id,
-                productCategoryId: electronicsCategory.id 
+                productCategoryId: electronicsCategory.id,
+                Slug: "smirnoff"
             },
             { 
                 nameProduct: "Corote",
                 productSituationId: activeSituation.id,
-                productCategoryId: electronicsCategory.id 
+                productCategoryId: electronicsCategory.id,
+                Slug: "corote"
             },
         ];
 

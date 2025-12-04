@@ -6,14 +6,15 @@ export class AddSlugToProducts1764873309747 implements MigrationInterface {
         await queryRunner.addColumn("products", new TableColumn({
             name: "slug",
             type: "varchar",
-            isNullable: false,
+            isNullable: true,
             isUnique: true,
         }));
 
-        await queryRunner.query(`ALTER TABLE products MODIFY COLUMN slug VARCHAR(255) AFTER name`);   
+        await queryRunner.query(`ALTER TABLE products MODIFY COLUMN slug VARCHAR(255) AFTER nameProduct`);   
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.dropColumn("products", "slug");
     }
 
 }
