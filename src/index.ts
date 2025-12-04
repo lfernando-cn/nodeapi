@@ -1,10 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 
 
 dotenv.config()
 const app = express()
 app.use(express.json());
+
+app.use(cors());
 
 
 //Incluir os controlleres
@@ -13,7 +16,7 @@ import ProductController from "./controllers/ProductController";
 import ProductSituationController from "./controllers/ProductSituationController";
 import ProductCategoryController from "./controllers/ProductCategoryController";
 import UsersController from "./controllers/UsersController";
-
+import TestConnectionController from "./controllers/TestConnectionController";
 
 //Criar as rotas
 app.use("/", SituationsController)
@@ -21,7 +24,7 @@ app.use("/", ProductController)
 app.use ("/", ProductCategoryController)
 app.use ("/", ProductSituationController)
 app.use("/", UsersController)
-
+app.use("/", TestConnectionController)
 
 
 //Iniciar o servidor 
