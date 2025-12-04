@@ -5,6 +5,8 @@ import { User } from "../entity/Users";
 import { Situation } from "../entity/Situation";
 import { PaginationService } from "../services/PaginationServices";
 import * as Yup from "yup";
+import bcrypt from "bcrypt"; // <-- Importar bcrypt
+
 
 const router = express.Router();
 
@@ -127,11 +129,14 @@ router.post("/users", async (req: Request, res: Response) => {
       });
     }
 
+        const hashedPassword = await bcrypt.hash(data.password, 10); // <-- Criptografar a senha
+
+
     // CRIAÇÃO DO USUÁRIO
     const newUser = userRepository.create({
       name: data.name,
       email: data.email,
-      password: data.password, // <-- ADICIONADO AQUI
+      password: hashedPassword, // <-- ADICIONADO AQUI
       situation: situation,
     });
 

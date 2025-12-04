@@ -1,83 +1,95 @@
 {
-  
-  "name": "apinode",
-  
-  "version": "1.0.0",
-  
-  "description": "* Node.js 22 ou superior - Conferir a versão: node -v\r * MySQL 8 ou superior - Conferir a versão: mysql --version",
-  
-  "main": "index.js",
-  
-  "scripts": {
-  
-    
-  "build": "tst",
-  
-    
-  "start": "node dist/index.js",
-  
-    
-  "watch": "tsc --watch",
-  
-    
-  "start:watch": "concurrently \"npm run watch\" \"node --watch dist/index.js\"",
-  
-    
-  "test": "echo \"Error: no test specified\" && exit 1"
-  
-  },
-  
-  "author": "",
-  
-  "license": "ISC",
-  
-  "dependencies": {
-  
-    
-  "@types/cors": "^2.8.19",
-  
-    
-  "cors": "^2.8.5",
-  
-    
-  "dotenv": "^17.2.3",
-  
-    
-  "express": "^5.1.0",
-  
-    
-  "mysql2": "^3.15.2",
-  
-    
-  "reflect-metadata": "^0.2.2",
-  
-    
-  "slugify": "^1.6.6",
-  
-    
-  "typeorm": "^0.3.27",
-  
-    
-  "yup": "^1.7.1"
-  
-  },
-  
-  "devDependencies": {
-  
-    
-  "@types/dotenv": "^6.1.1",
-  
-    
-  "@types/express": "^5.0.3",
-  
-    
-  "@types/node": "^22.18.8",
-  
-    
-  "concurrently": "^9.2.1",
-  
-    
-  "ts-node": "^10.9.2"
-  
-  }
+  
+"name": "apinode",
+  
+"version": "1.0.0",
+  
+"description": "* Node.js 22 ou superior - Conferir a versão: node -v\r * MySQL 8 ou superior - Conferir a versão: mysql --version",
+  
+"main": "index.js",
+  
+"scripts": {
+  
+  
+"build": "tst",
+  
+  
+"start": "node dist/index.js",
+  
+  
+"watch": "tsc --watch",
+  
+  
+"start:watch": "concurrently \"npm run watch\" \"node --watch dist/index.js\"",
+  
+  
+"test": "echo \"Error: no test specified\" && exit 1"
+  
+},
+  
+"author": "",
+  
+"license": "ISC",
+  
+"dependencies": {
+  
+  
+"@types/bcrypt": "^6.0.0",
+  
+  
+"@types/bcryptjs": "^2.4.6",
+  
+  
+"@types/cors": "^2.8.19",
+  
+  
+"bcrypt": "^6.0.0",
+  
+  
+"bcryptjs": "^3.0.3",
+  
+  
+"cors": "^2.8.5",
+  
+  
+"dotenv": "^17.2.3",
+  
+  
+"express": "^5.1.0",
+  
+  
+"mysql2": "^3.15.2",
+  
+  
+"reflect-metadata": "^0.2.2",
+  
+  
+"slugify": "^1.6.6",
+  
+  
+"typeorm": "^0.3.27",
+  
+  
+"yup": "^1.7.1"
+  
+},
+  
+"devDependencies": {
+  
+  
+"@types/dotenv": "^6.1.1",
+  
+  
+"@types/express": "^5.0.3",
+  
+  
+"@types/node": "^22.18.8",
+  
+  
+"concurrently": "^9.2.1",
+  
+  
+"ts-node": "^10.9.2"
+  
+}
 }
