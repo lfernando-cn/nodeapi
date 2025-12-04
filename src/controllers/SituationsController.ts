@@ -3,169 +3,195 @@ import express, {Request, Response} from "express";
 import { AppDataSource } from "../data-source";
 import { Situation } from "../entity/Situation";
 import { PaginationService } from "../services/PaginationServices";
-
+import * as yup from "yup";
 
 //Criar a aplicação Express
 const router = express.Router();
 
+// Schema de validação com Yup
+const situationSchema = yup.object({
+  nameSituation: yup
+    .string()
+    .required("O campo nameSituation é obrigatório.")
+    .min(3, "O nome deve ter pelo menos 3 caracteres.")
+    .max(100, "O nome deve ter no máximo 100 caracteres."),
+});
+
+// Schema parcial para PUT
+const updateSituationSchema = situationSchema.partial();
+
 
 // Criar a Lista
-router.get("/situations",async(req:Request, res:Response)=>{
-  try{
-
-    //Obter o repositório da entidade Situation
+router.get("/situations", async (req: Request, res: Response) => {
+  try {
     const situationRepository = AppDataSource.getRepository(Situation);
 
-    //Receber o número da página e definir página 1 como padrão
     const page = Number(req.query.page) || 1;
-
-    //Definir o limite de registros por página
     const limite = Number(req.query.limite) || 10;
 
+    const result = await PaginationService.paginate(
+      situationRepository,
+      page,
+      limite,
+      { id: "DESC" }
+    );
 
-    // Serviço de Paginação
-    const result = await PaginationService.paginate(situationRepository, page, limite, {id: "DESC"});
+    res.status(200).json(result);
+    return;
 
-    //Retornar a resposta com os dados e informações da paginação
-    res.status(200).json(result); //Lista todos os dados do banco
-    return
-
-  }catch(error){
+  } catch (error) {
     res.status(500).json({
-        message : "Erro ao Listar a situação!",
-      });
-      return
-  }
-});
-
-// Criar a Visualização do item cadastrado em situação
-router.get("/situations/:id",async(req:Request, res:Response)=>{
-  try{
-
-    const {id} = req.params;
-
-    const situationRepository = AppDataSource.getRepository(Situation);
-
-    const situation = await situationRepository.findOneBy({id : parseInt(id)})
-
-    if(!situation){
-      res.status(404).json({
-        message : "Situação não encontrada!",
-      });
-      return
-
-    }
-
-    res.status(200).json(situation); //Lista todos os dados do banco
-    return
-
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Visualizar a situação!",
-      });
-      return
+      message: "Erro ao Listar a situação!",
+    });
+    return;
   }
 });
 
 
-
-// Cadastra item no banco de dados
-router.post("/situations",async(req:Request, res:Response)=>{
-
-    try{
-      var data = req.body;
-
-      const situationRepository = AppDataSource.getRepository(Situation)
-      const newSituation = situationRepository.create(data);
-
-      await situationRepository.save(newSituation); //Isso que irá salvar no banco de dados
-
-      res.status(201).json({
-        message : "Situação cadastrada com sucesso!",
-        situation: newSituation,
-      });
-
-    }catch(error){
-
-       res.status(500).json({
-        message : "Erro ao cadastrar a situação!",
-      });
-
-    }
-});
-
-// Faz a atualização do item cadastrado 
-router.put("/situations/:id",async(req:Request, res:Response)=>{
-  try{
-
-    const {id} = req.params;
-
-    var data = req.body;
+// Visualização do item cadastrado
+router.get("/situations/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
     const situationRepository = AppDataSource.getRepository(Situation);
 
-    const situation = await situationRepository.findOneBy({id : parseInt(id)}) //Busca pelo ID digitado
+    const situation = await situationRepository.findOneBy({
+      id: parseInt(id),
+    });
 
-    if(!situation){ //Se passar um ID que não exite ele passa a seguinte mensagem
+    if (!situation) {
       res.status(404).json({
-        message : "Situação não encontrada!",
+        message: "Situação não encontrada!",
       });
-      return
+      return;
     }
 
-    //Atualiza os dados
+    res.status(200).json(situation);
+    return;
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Erro ao Visualizar a situação!",
+    });
+    return;
+  }
+});
+
+
+
+// Cadastrar item no banco de dados
+router.post("/situations", async (req: Request, res: Response) => {
+  try {
+    const data = req.body;
+
+    // Validação Yup
+    await situationSchema.validate(data, { abortEarly: false });
+
+    const situationRepository = AppDataSource.getRepository(Situation);
+    const newSituation = situationRepository.create(data);
+
+    await situationRepository.save(newSituation);
+
+    res.status(201).json({
+      message: "Situação cadastrada com sucesso!",
+      situation: newSituation,
+    });
+
+  } catch (error: any) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Erro de validação!",
+        errors: error.errors,
+      });
+    }
+
+    res.status(500).json({
+      message: "Erro ao cadastrar a situação!",
+    });
+  }
+});
+
+
+
+// Atualizar item cadastrado
+router.put("/situations/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+
+    // Validação Yup parcial
+    await updateSituationSchema.validate(data, { abortEarly: false });
+
+    const situationRepository = AppDataSource.getRepository(Situation);
+
+    const situation = await situationRepository.findOneBy({
+      id: parseInt(id),
+    });
+
+    if (!situation) {
+      res.status(404).json({
+        message: "Situação não encontrada!",
+      });
+      return;
+    }
+
     situationRepository.merge(situation, data);
-
-    //Salvar as alterações de dados
     const updateSituation = await situationRepository.save(situation);
 
     res.status(200).json({
-      messagem: "Situação atualizada com sucesso!",
+      message: "Situação atualizada com sucesso!",
       situation: updateSituation,
-    }); 
-    
+    });
 
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Atualizar a situação!",
+  } catch (error: any) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Erro de validação!",
+        errors: error.errors,
       });
-      return
+    }
+
+    res.status(500).json({
+      message: "Erro ao Atualizar a situação!",
+    });
+    return;
   }
 });
 
-// Remove o item cadastrado no banco de dados
-router.delete("/situations/:id",async(req:Request, res:Response)=>{
-  try{
 
-    const {id} = req.params;
+
+// Remover item cadastrado
+router.delete("/situations/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
     const situationRepository = AppDataSource.getRepository(Situation);
 
-    const situation = await situationRepository.findOneBy({id : parseInt(id)}) //Busca pelo ID digitado
+    const situation = await situationRepository.findOneBy({
+      id: parseInt(id),
+    });
 
-    if(!situation){ //Se passar um ID que não exite ele passa a seguinte mensagem
+    if (!situation) {
       res.status(404).json({
-        message : "Situação não encontrada!",
+        message: "Situação não encontrada!",
       });
-      return
+      return;
     }
 
-    //Remove os dados no banco
     await situationRepository.remove(situation);
 
     res.status(200).json({
       messagem: "Situação foi removida com sucesso!",
-    }); 
-    
+    });
 
-  }catch(error){
+  } catch (error) {
     res.status(500).json({
-        message : "Erro ao Atualizar a situação!",
-      });
-      return
+      message: "Erro ao Atualizar a situação!",
+    });
+    return;
   }
 });
 
 
 //Exportar a instrução da rota
-export default router
+export default router;
