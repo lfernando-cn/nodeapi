@@ -1,27 +1,32 @@
-// importar a biblioteca do Express
-import express, {Request, Response} from "express";
+import express, { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Situation } from "../entity/Situation";
 import { PaginationService } from "../services/PaginationServices";
-import * as yup from "yup";
+import * as Yup from "yup";
 
-//Criar a aplicação Express
 const router = express.Router();
 
-// Schema de validação com Yup
-const situationSchema = yup.object({
-  nameSituation: yup
-    .string()
-    .required("O campo nameSituation é obrigatório.")
+// ============================
+//  SCHEMA DE VALIDAÇÃO YUP
+// ============================
+const situationSchema = Yup.object().shape({
+  nameSituation: Yup.string()
+    .required("O nome da situação é obrigatório.")
     .min(3, "O nome deve ter pelo menos 3 caracteres.")
     .max(100, "O nome deve ter no máximo 100 caracteres."),
 });
 
-// Schema parcial para PUT
-const updateSituationSchema = situationSchema.partial();
+// Para PUT (parcial)
+const updateSituationSchema = Yup.object().shape({
+  nameSituation: Yup.string()
+    .min(3, "O nome deve ter pelo menos 3 caracteres.")
+    .max(100, "O nome deve ter no máximo 100 caracteres."),
+});
 
 
-// Criar a Lista
+// ============================
+//  LISTAR COM PAGINAÇÃO
+// ============================
 router.get("/situations", async (req: Request, res: Response) => {
   try {
     const situationRepository = AppDataSource.getRepository(Situation);
@@ -36,162 +41,174 @@ router.get("/situations", async (req: Request, res: Response) => {
       { id: "DESC" }
     );
 
-    res.status(200).json(result);
-    return;
+    return res.status(200).json(result);
 
   } catch (error) {
-    res.status(500).json({
-      message: "Erro ao Listar a situação!",
+    return res.status(500).json({
+      message: "Erro ao listar as situações!",
     });
-    return;
   }
 });
 
 
-// Visualização do item cadastrado
+// ============================
+//  VISUALIZAR POR ID
+// ============================
 router.get("/situations/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     const situationRepository = AppDataSource.getRepository(Situation);
-
-    const situation = await situationRepository.findOneBy({
-      id: parseInt(id),
-    });
+    const situation = await situationRepository.findOneBy({ id: Number(id) });
 
     if (!situation) {
-      res.status(404).json({
+      return res.status(404).json({
         message: "Situação não encontrada!",
       });
-      return;
     }
 
-    res.status(200).json(situation);
-    return;
+    return res.status(200).json(situation);
 
   } catch (error) {
-    res.status(500).json({
-      message: "Erro ao Visualizar a situação!",
+    return res.status(500).json({
+      message: "Erro ao visualizar a situação!",
     });
-    return;
   }
 });
 
 
-
-// Cadastrar item no banco de dados
+// ============================
+//  CADASTRAR (COM YUP)
+// ============================
 router.post("/situations", async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
-    // Validação Yup
-    await situationSchema.validate(data, { abortEarly: false });
+    // VALIDAR YUP
+    try {
+      await situationSchema.validate(data, { abortEarly: false });
+    } catch (err: any) {
+      return res.status(400).json({
+        message: "Erro de validação",
+        errors: err.errors,
+      });
+    }
 
     const situationRepository = AppDataSource.getRepository(Situation);
-    const newSituation = situationRepository.create(data);
 
+    // VERIFICAR DUPLICIDADE
+    const exists = await situationRepository.findOneBy({
+      nameSituation: data.nameSituation,
+    });
+
+    if (exists) {
+      return res.status(400).json({
+        message: "Já existe uma situação com esse nome.",
+      });
+    }
+
+    const newSituation = situationRepository.create(data);
     await situationRepository.save(newSituation);
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Situação cadastrada com sucesso!",
       situation: newSituation,
     });
 
-  } catch (error: any) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        message: "Erro de validação!",
-        errors: error.errors,
-      });
-    }
-
-    res.status(500).json({
+  } catch (error) {
+    return res.status(500).json({
       message: "Erro ao cadastrar a situação!",
     });
   }
 });
 
 
-
-// Atualizar item cadastrado
+// ============================
+//  ATUALIZAR (COM YUP)
+// ============================
 router.put("/situations/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const data = req.body;
 
-    // Validação Yup parcial
-    await updateSituationSchema.validate(data, { abortEarly: false });
-
     const situationRepository = AppDataSource.getRepository(Situation);
-
-    const situation = await situationRepository.findOneBy({
-      id: parseInt(id),
-    });
+    const situation = await situationRepository.findOneBy({ id: Number(id) });
 
     if (!situation) {
-      res.status(404).json({
+      return res.status(404).json({
         message: "Situação não encontrada!",
       });
-      return;
+    }
+
+    // VALIDAR YUP PARCIAL
+    try {
+      await updateSituationSchema.validate(data, { abortEarly: false });
+    } catch (err: any) {
+      return res.status(400).json({
+        message: "Erro de validação",
+        errors: err.errors,
+      });
+    }
+
+    // EVITAR DUPLICIDADE
+    if (
+      data.nameSituation &&
+      data.nameSituation !== situation.nameSituation
+    ) {
+      const exists = await situationRepository.findOneBy({
+        nameSituation: data.nameSituation,
+      });
+
+      if (exists) {
+        return res.status(400).json({
+          message: "Já existe uma situação com esse nome.",
+        });
+      }
     }
 
     situationRepository.merge(situation, data);
-    const updateSituation = await situationRepository.save(situation);
+    const updated = await situationRepository.save(situation);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Situação atualizada com sucesso!",
-      situation: updateSituation,
+      situation: updated,
     });
 
-  } catch (error: any) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        message: "Erro de validação!",
-        errors: error.errors,
-      });
-    }
-
-    res.status(500).json({
-      message: "Erro ao Atualizar a situação!",
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erro ao atualizar a situação!",
     });
-    return;
   }
 });
 
 
-
-// Remover item cadastrado
+// ============================
+//  REMOVER
+// ============================
 router.delete("/situations/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     const situationRepository = AppDataSource.getRepository(Situation);
-
-    const situation = await situationRepository.findOneBy({
-      id: parseInt(id),
-    });
+    const situation = await situationRepository.findOneBy({ id: Number(id) });
 
     if (!situation) {
-      res.status(404).json({
+      return res.status(404).json({
         message: "Situação não encontrada!",
       });
-      return;
     }
 
     await situationRepository.remove(situation);
 
-    res.status(200).json({
-      messagem: "Situação foi removida com sucesso!",
+    return res.status(200).json({
+      message: "Situação removida com sucesso!",
     });
 
   } catch (error) {
-    res.status(500).json({
-      message: "Erro ao Atualizar a situação!",
+    return res.status(500).json({
+      message: "Erro ao remover a situação!",
     });
-    return;
   }
 });
 
-
-//Exportar a instrução da rota
 export default router;

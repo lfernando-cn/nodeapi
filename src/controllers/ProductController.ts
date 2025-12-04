@@ -96,6 +96,17 @@ router.post("/products", async (req: Request, res: Response) => {
 
     const productRepository = AppDataSource.getRepository(Product);
 
+    // 🔥 Verifica se já existe produto com o mesmo nome
+    const existing = await productRepository.findOne({
+      where: { nameProduct: data.nameProduct }
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        message: "Já existe um produto cadastrado com esse nome!"
+      });
+    }
+
     const newProduct = productRepository.create(data);
     await productRepository.save(newProduct);
 
@@ -137,6 +148,19 @@ router.put("/products/:id", async (req: Request, res: Response) => {
     if (!product) {
       res.status(404).json({ message: "Produto não encontrado!" });
       return;
+    }
+
+    // 🔥 Verifica duplicidade ao atualizar (ignora o próprio produto)
+    if (data.nameProduct) {
+      const exists = await productRepository.findOne({
+        where: { nameProduct: data.nameProduct }
+      });
+
+      if (exists && exists.id !== Number(id)) {
+        return res.status(400).json({
+          message: "Já existe outro produto com esse nome!"
+        });
+      }
     }
 
     productRepository.merge(product, data);

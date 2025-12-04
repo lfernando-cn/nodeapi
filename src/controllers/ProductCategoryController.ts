@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response } from "express"; 
 import { AppDataSource } from "../data-source";
 import { ProductCategory } from "../entity/ProductCategory";
 import { PaginationService } from "../services/PaginationServices";
@@ -72,6 +72,17 @@ router.post("/productCategory", async (req: Request, res: Response) => {
 
     const repo = AppDataSource.getRepository(ProductCategory);
 
+    // 🔥 Verificar se já existe categoria com o mesmo nome
+    const existing = await repo.findOne({
+      where: { nameProductCategory: data.nameProductCategory }
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        message: "Já existe uma Categoria de Produto com esse nome!"
+      });
+    }
+
     const newCategory = repo.create(data);
     await repo.save(newCategory);
 
@@ -112,6 +123,19 @@ router.put("/productCategory/:id", async (req: Request, res: Response) => {
       return res.status(404).json({
         message: "Categoria de Produto não encontrada!",
       });
+    }
+
+    // 🔥 Verificar duplicidade (ignora o próprio ID)
+    if (data.nameProductCategory) {
+      const exists = await repo.findOne({
+        where: { nameProductCategory: data.nameProductCategory }
+      });
+
+      if (exists && exists.id !== Number(id)) {
+        return res.status(400).json({
+          message: "Já existe outra Categoria de Produto com esse nome!"
+        });
+      }
     }
 
     repo.merge(category, data);
