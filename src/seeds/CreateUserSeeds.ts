@@ -32,16 +32,19 @@ export default class CreateUserSeeds {
       {
         name: "Luís Fernando",
         email: "luis.fernando@example.com",
+        password: "senha123",
         situation: situation, // ou { id: 1 }
       },
       {
         name: "Maria Silva",
         email: "maria.silva@example.com",
+        password: "senha123",
         situation: situation,
       },
       {
         name: "João Pereira",
         email: "joao.pereira@example.com",
+        password: "senha123",
         situation: situation,
       },
     ];
