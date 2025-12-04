@@ -19,11 +19,13 @@ const userSchema = Yup.object().shape({
   email: Yup.string()
     .required("O email é obrigatório.")
     .email("Formato de e-mail inválido."),
+  password: Yup.string()
+    .required("A senha é obrigatória.")
+    .min(6, "A senha deve ter pelo menos 6 caracteres."),
   situationId: Yup.number()
     .required("O campo situationId é obrigatório.")
     .typeError("O situationId deve ser um número."),
 });
-
 
 // ============================
 //  LISTAR USUÁRIOS COM PAGINAÇÃO
@@ -51,7 +53,6 @@ router.get("/users", async (req: Request, res: Response) => {
     return;
   }
 });
-
 
 // ============================
 //  BUSCAR POR ID
@@ -83,7 +84,6 @@ router.get("/users/:id", async (req: Request, res: Response) => {
     return;
   }
 });
-
 
 // ============================
 //  CADASTRAR USUÁRIO (COM YUP)
@@ -127,9 +127,11 @@ router.post("/users", async (req: Request, res: Response) => {
       });
     }
 
+    // CRIAÇÃO DO USUÁRIO
     const newUser = userRepository.create({
       name: data.name,
       email: data.email,
+      password: data.password, // <-- ADICIONADO AQUI
       situation: situation,
     });
 
@@ -139,6 +141,7 @@ router.post("/users", async (req: Request, res: Response) => {
       message: "Usuário cadastrado com sucesso!",
       user: newUser,
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Erro ao cadastrar o usuário!",
@@ -146,7 +149,6 @@ router.post("/users", async (req: Request, res: Response) => {
     return;
   }
 });
-
 
 // ============================
 //  ATUALIZAR USUÁRIO (COM YUP)
@@ -178,7 +180,7 @@ router.put("/users/:id", async (req: Request, res: Response) => {
       });
     }
 
-    // SE FOR ATUALIZAR A SITUAÇÃO — VALIDAR
+    // SE FOR ATUALIZAR A SITUAÇÃO
     if (data.situationId) {
       const situation = await situationRepository.findOneBy({
         id: data.situationId,
@@ -193,7 +195,7 @@ router.put("/users/:id", async (req: Request, res: Response) => {
       data.situation = situation;
     }
 
-    // EVITAR DUPLICIDADE DE E-MAIL AO ALTERAR
+    // EVITAR DUPLICIDADE DE E-MAIL
     if (data.email && data.email !== user.email) {
       const existsEmail = await userRepository.findOneBy({
         email: data.email,
@@ -220,7 +222,6 @@ router.put("/users/:id", async (req: Request, res: Response) => {
     return;
   }
 });
-
 
 // ============================
 //  DELETAR USUÁRIO
