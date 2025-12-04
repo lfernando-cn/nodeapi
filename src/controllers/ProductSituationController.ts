@@ -1,171 +1,204 @@
-// importar a biblioteca do Express
-import express, {Request, Response} from "express";
+import express, { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { ProductSituation } from "../entity/ProductSituation";
-import { PaginationService } from "../services/PaginationServices"; //Confirmar se posso usar a mesma pagina Service
+import { PaginationService } from "../services/PaginationServices";
+import * as Yup from "yup";
 
-
-//Criar a aplicação Express
 const router = express.Router();
 
+// ============================
+//  SCHEMA DE VALIDAÇÃO YUP
+// ============================
+const productSituationSchema = Yup.object().shape({
+  nameProductSituation: Yup.string()
+    .required("O nome da situação é obrigatório.")
+    .min(2, "O nome deve ter pelo menos 2 caracteres.")
+    .max(255, "O nome deve ter no máximo 255 caracteres."),
+});
 
-// Criar a Lista
-router.get("/product_situations",async(req:Request, res:Response)=>{
-  try{
 
-    //Obter o repositório da entidade Product
+// ============================
+//  LISTAR COM PAGINAÇÃO
+// ============================
+router.get("/product_situations", async (req: Request, res: Response) => {
+  try {
     const productSituationRepository = AppDataSource.getRepository(ProductSituation);
 
-    //Receber o número da página e definir página 1 como padrão
     const page = Number(req.query.page) || 1;
-
-    //Definir o limite de registros por página
     const limite = Number(req.query.limite) || 10;
 
+    const result = await PaginationService.paginate(
+      productSituationRepository,
+      page,
+      limite,
+      { id: "DESC" }
+    );
 
-    // Serviço de Paginação
-    const result = await PaginationService.paginate(productSituationRepository, page, limite, {id: "DESC"});
+    return res.status(200).json(result);
 
-    //Retornar a resposta com os dados e informações da paginação
-    res.status(200).json(result); //Lista todos os dados do banco
-    return
-
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Listar as situações de produtos!",
-      });
-      return
-  }
-});
-
-// Criar a Visualização do item cadastrado em situação
-router.get("/product_situations/:id",async(req:Request, res:Response)=>{
-  try{
-
-    const {id} = req.params;
-
-    const productSituationRepository = AppDataSource.getRepository(ProductSituation);
-
-    const productSituation = await productSituationRepository.findOneBy({id : parseInt(id)})
-
-    if(!productSituation){
-      res.status(404).json({
-        message : "Situação de Produto não encontrada!",
-      });
-      return
-
-    }
-
-    res.status(200).json(productSituation); //Lista todos os dados do banco
-    return
-
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Visualizar as situações de produtos!",
-      });
-      return
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erro ao Listar as situações de produtos!",
+    });
   }
 });
 
 
+// ============================
+//  VISUALIZAR POR ID
+// ============================
+router.get("/product_situations/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
-// Cadastra item no banco de dados
-router.post("/product_situations",async(req:Request, res:Response)=>{
+    const productSituationRepository = AppDataSource.getRepository(ProductSituation);
+    const productSituation = await productSituationRepository.findOneBy({ id: Number(id) });
 
-    try{
-      var data = req.body;
-
-      const productSituationRepository = AppDataSource.getRepository(ProductSituation)
-      const newProductSituation = productSituationRepository.create(data);
-
-      await productSituationRepository.save(newProductSituation); //Isso que irá salvar no banco de dados
-
-      res.status(201).json({
-        message : "Situação de Produto cadastrado com sucesso!",
-        situation: newProductSituation,
+    if (!productSituation) {
+      return res.status(404).json({
+        message: "Situação de Produto não encontrada!",
       });
-
-    }catch(error){
-
-       res.status(500).json({
-        message : "Erro ao cadastrar a situação de produto!",
-      });
-
     }
+
+    return res.status(200).json(productSituation);
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erro ao Visualizar as situações de produtos!",
+    });
+  }
 });
 
-// Faz a atualização do item cadastrado 
-router.put("/product_situations/:id",async(req:Request, res:Response)=>{
-  try{
 
-    const {id} = req.params;
+// ============================
+//  CADASTRAR (COM YUP)
+// ============================
+router.post("/product_situations", async (req: Request, res: Response) => {
+  try {
+    const data = req.body;
 
-    var data = req.body;
+    // VALIDAR YUP
+    try {
+      await productSituationSchema.validate(data, { abortEarly: false });
+    } catch (err: any) {
+      return res.status(400).json({
+        message: "Erro de validação",
+        errors: err.errors,
+      });
+    }
 
     const productSituationRepository = AppDataSource.getRepository(ProductSituation);
 
-    const productSituation = await productSituationRepository.findOneBy({id : parseInt(id)}) //Busca pelo ID digitado
+    // VERIFICAR DUPLICIDADE
+    const exists = await productSituationRepository.findOneBy({
+      nameProductSituation: data.nameProductSituation,
+    });
 
-    if(!productSituation){ //Se passar um ID que não exite ele passa a seguinte mensagem
-      res.status(404).json({
-        message : "Situação de Produto não encontrada!",
+    if (exists) {
+      return res.status(400).json({
+        message: "Já existe uma situação com esse nome.",
       });
-      return
     }
 
-    //Atualiza os dados
+    const newProductSituation = productSituationRepository.create(data);
+    await productSituationRepository.save(newProductSituation);
+
+    return res.status(201).json({
+      message: "Situação de Produto cadastrada com sucesso!",
+      situation: newProductSituation,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erro ao cadastrar a situação de produto!",
+    });
+  }
+});
+
+
+// ============================
+//  ATUALIZAR (COM YUP)
+// ============================
+router.put("/product_situations/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+
+    const productSituationRepository = AppDataSource.getRepository(ProductSituation);
+    const productSituation = await productSituationRepository.findOneBy({ id: Number(id) });
+
+    if (!productSituation) {
+      return res.status(404).json({
+        message: "Situação de Produto não encontrada!",
+      });
+    }
+
+    // VALIDAR YUP
+    try {
+      await productSituationSchema.validate(data, { abortEarly: false });
+    } catch (err: any) {
+      return res.status(400).json({
+        message: "Erro de validação",
+        errors: err.errors,
+      });
+    }
+
+    // EVITAR DUPLICIDADE
+    if (data.nameProductSituation !== productSituation.nameProductSituation) {
+      const exists = await productSituationRepository.findOneBy({
+        nameProductSituation: data.nameProductSituation,
+      });
+
+      if (exists) {
+        return res.status(400).json({
+          message: "Já existe uma situação com esse nome.",
+        });
+      }
+    }
+
     productSituationRepository.merge(productSituation, data);
+    const updated = await productSituationRepository.save(productSituation);
 
-    //Salvar as alterações de dados
-    const updateProductSituation = await productSituationRepository.save(productSituation);
+    return res.status(200).json({
+      message: "Situação de Produto atualizada com sucesso!",
+      situation: updated,
+    });
 
-    res.status(200).json({
-      messagem: "Situação de Produto atualizado com sucesso!",
-      product: updateProductSituation,
-    }); 
-    
-
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Atualizar a situação de produto!",
-      });
-      return
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erro ao Atualizar a situação de produto!",
+    });
   }
 });
 
-// Remove o item cadastrado no banco de dados
-router.delete("/product_situations/:id",async(req:Request, res:Response)=>{
-  try{
 
-    const {id} = req.params;
+// ============================
+//  REMOVER
+// ============================
+router.delete("/product_situations/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
     const productSituationRepository = AppDataSource.getRepository(ProductSituation);
+    const productSituation = await productSituationRepository.findOneBy({ id: Number(id) });
 
-    const productSituation = await productSituationRepository.findOneBy({id : parseInt(id)}) //Busca pelo ID digitado
-
-    if(!productSituation){ //Se passar um ID que não exite ele passa a seguinte mensagem
-      res.status(404).json({
-        message : "Situaçaõ de Produto não encontrado!",
+    if (!productSituation) {
+      return res.status(404).json({
+        message: "Situação de Produto não encontrada!",
       });
-      return
     }
 
-    //Remove os dados no banco
     await productSituationRepository.remove(productSituation);
 
-    res.status(200).json({
-      messagem: "Situação de Produto foi removido com sucesso!",
-    }); 
-    
+    return res.status(200).json({
+      message: "Situação de Produto removida com sucesso!",
+    });
 
-  }catch(error){
-    res.status(500).json({
-        message : "Erro ao Atualizar a situação de produto!",
-      });
-      return
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erro ao remover a situação de produto!",
+    });
   }
 });
 
-
-//Exportar a instrução da rota
-export default router
+export default router;
