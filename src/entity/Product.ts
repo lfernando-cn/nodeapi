@@ -15,6 +15,12 @@ export class Product {
     @Column({ name: 'slug', unique: true })
     Slug!: string;
 
+    @Column({ type: 'decimal', precision: 10 })
+    price!: number;
+
+    @Column({ type: 'text', nullable: true })
+    description!: string | null;
+
     @Column({ name: 'productSituationId' }) 
     productSituationId!: number;
 

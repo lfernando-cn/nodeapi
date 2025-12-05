@@ -21,12 +21,12 @@ export default class CreateProductSeeds {
         const situationRepository = dataSource.getRepository(ProductSituation);
         const categoryRepository = dataSource.getRepository(ProductCategory);
 
-        // Busca a situação "Ativo" e a categoria "Eletrônicos" para usar os IDs
+        // Busca a situação "Ativo" e a categoria "Bebidas" para usar os IDs
         const activeSituation = await situationRepository.findOneBy({ nameProductSituation: "Ativo" });
         const electronicsCategory = await categoryRepository.findOneBy({ nameProductCategory: "Bebidas" });
 
         if (!activeSituation || !electronicsCategory) {
-            console.error("ERRO: Não foi possível encontrar as referências 'Ativo' ou 'Eletrônicos'. Execute as Seeds de catálogo primeiro!");
+            console.error("ERRO: Não foi possível encontrar as referências 'Ativo' ou 'Bebidas'. Execute as Seeds de catálogo primeiro!");
             return;
         }
 
@@ -35,20 +35,25 @@ export default class CreateProductSeeds {
                 nameProduct: "Gin de 10",
                 productSituationId: activeSituation.id,
                 productCategoryId: electronicsCategory.id,
-                Slug: "gin-de-10"
-                
+                Slug: "gin-de-10",
+                price: 49.90,
+                description: "Gin nacional, sabor marcante e ótimo custo-benefício."
             },
             { 
                 nameProduct: "Smirnoff",
                 productSituationId: activeSituation.id,
                 productCategoryId: electronicsCategory.id,
-                Slug: "smirnoff"
+                Slug: "smirnoff",
+                price: 32.00,
+                description: "Vodka Smirnoff, clássica e ideal para drinks."
             },
             { 
                 nameProduct: "Corote",
                 productSituationId: activeSituation.id,
                 productCategoryId: electronicsCategory.id,
-                Slug: "corote"
+                Slug: "corote",
+                price: 7.50,
+                description: "Corote sabor limão, bebida popular e refrescante."
             },
         ];
 
