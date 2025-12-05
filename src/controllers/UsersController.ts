@@ -5,8 +5,8 @@ import { User } from "../entity/Users";
 import { Situation } from "../entity/Situation";
 import { PaginationService } from "../services/PaginationServices";
 import * as Yup from "yup";
-import bcrypt from "bcrypt"; // <-- Importar bcrypt
-
+import bcrypt from "bcrypt";
+import { authMiddleware } from "../middlewares/authMiddleware"; // <-- IMPORTAR MIDDLEWARE
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ const userSchema = Yup.object().shape({
 // ============================
 //  LISTAR USUÁRIOS COM PAGINAÇÃO
 // ============================
-router.get("/users", async (req: Request, res: Response) => {
+router.get("/users", authMiddleware, async (req: Request, res: Response) => { // <-- ADICIONAR MIDDLEWARE
   try {
     const userRepository = AppDataSource.getRepository(User);
 
@@ -59,7 +59,7 @@ router.get("/users", async (req: Request, res: Response) => {
 // ============================
 //  BUSCAR POR ID
 // ============================
-router.get("/users/:id", async (req: Request, res: Response) => {
+router.get("/users/:id", authMiddleware, async (req: Request, res: Response) => { // <-- ADICIONAR MIDDLEWARE
   try {
     const { id } = req.params;
 
@@ -129,14 +129,13 @@ router.post("/users", async (req: Request, res: Response) => {
       });
     }
 
-        const hashedPassword = await bcrypt.hash(data.password, 10); // <-- Criptografar a senha
-
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
     // CRIAÇÃO DO USUÁRIO
     const newUser = userRepository.create({
       name: data.name,
       email: data.email,
-      password: hashedPassword, // <-- ADICIONADO AQUI
+      password: hashedPassword,
       situation: situation,
     });
 
@@ -158,7 +157,7 @@ router.post("/users", async (req: Request, res: Response) => {
 // ============================
 //  ATUALIZAR USUÁRIO (COM YUP)
 // ============================
-router.put("/users/:id", async (req: Request, res: Response) => {
+router.put("/users/:id", authMiddleware, async (req: Request, res: Response) => { // <-- ADICIONAR MIDDLEWARE
   try {
     const { id } = req.params;
     const data = req.body;
@@ -227,11 +226,11 @@ router.put("/users/:id", async (req: Request, res: Response) => {
     return;
   }
 });
+
 // ============================
 //  ATUALIZAR SENHA DO USUÁRIO
 // ============================   
-
-router.put("/users/:id/password", async (req: Request, res: Response) => {
+router.put("/users/:id/password", authMiddleware, async (req: Request, res: Response) => { // <-- ADICIONAR MIDDLEWARE
   try {
     const { id } = req.params;
     const { currentPassword, newPassword, confirmPassword } = req.body;
@@ -311,7 +310,7 @@ router.put("/users/:id/password", async (req: Request, res: Response) => {
 // ============================
 //  DELETAR USUÁRIO
 // ============================
-router.delete("/users/:id", async (req: Request, res: Response) => {
+router.delete("/users/:id", authMiddleware, async (req: Request, res: Response) => { // <-- ADICIONAR MIDDLEWARE
   try {
     const { id } = req.params;
 
