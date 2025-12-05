@@ -20,8 +20,8 @@ const recoverSchema = Yup.object().shape({
   email: Yup.string().required("O email é obrigatório.").email("Formato de e-mail inválido."),
 });
 
+// Schema para reset sem token (token vem da URL)
 const resetSchema = Yup.object().shape({
-  token: Yup.string().required("O token é obrigatório."),
   newPassword: Yup.string().required("A nova senha é obrigatória.").min(6, "A senha deve ter pelo menos 6 caracteres."),
   confirmPassword: Yup.string()
     .required("A confirmação de senha é obrigatória.")
@@ -134,11 +134,19 @@ router.post("/recover-password", async (req: Request, res: Response) => {
 });
 
 // ============================
-//  RESETAR SENHA (CONSUMIR TOKEN)
+//  RESETAR SENHA (CONSUMIR TOKEN DA URL)
 // ============================
+// Aceita token como query parameter: POST /reset-password?token=...
 router.post("/reset-password", async (req: Request, res: Response) => {
   try {
     const data = req.body;
+    
+    // Extrair token de query parameter ou do body (compatibilidade)
+    let token = (req.query.token as string) || data.token;
+
+    if (!token) {
+      return res.status(400).json({ message: "Token não fornecido. Passe-o na URL como ?token=SEU_TOKEN" });
+    }
 
     try {
       await resetSchema.validate(data, { abortEarly: false });
@@ -148,7 +156,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
     let decoded: any;
     try {
-      decoded = jwt.verify(data.token, process.env.JWT_SECRET || "teste");
+      decoded = jwt.verify(token, process.env.JWT_SECRET || "teste");
     } catch (err) {
       return res.status(401).json({ message: "Token inválido ou expirado!" });
     }
