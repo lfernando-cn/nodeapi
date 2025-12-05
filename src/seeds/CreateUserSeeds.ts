@@ -1,6 +1,7 @@
 import { DataSource } from "typeorm";
 import { User } from "../entity/Users";
 import { Situation } from "../entity/Situation";
+import bcrypt from "bcrypt";
 
 export default class CreateUserSeeds {
 
@@ -27,13 +28,13 @@ export default class CreateUserSeeds {
       return;
     }
 
-    // Cria usuários de exemplo, associando diretamente o ID da situação
-    const users = [
+    // Cria usuários de exemplo com senhas criptografadas
+    const usersData = [
       {
         name: "Luís Fernando",
         email: "luis.fernando@example.com",
         password: "senha123",
-        situation: situation, // ou { id: 1 }
+        situation: situation,
       },
       {
         name: "Maria Silva",
@@ -49,9 +50,22 @@ export default class CreateUserSeeds {
       },
     ];
 
-    // Salva os usuários
+    // Criptografa as senhas e cria os usuários
+    const users = await Promise.all(
+      usersData.map(async (userData) => {
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        return userRepository.create({
+          name: userData.name,
+          email: userData.email,
+          password: hashedPassword,
+          situation: userData.situation,
+        });
+      })
+    );
+
+    // Salva os usuários com senhas criptografadas
     await userRepository.save(users);
 
-    console.log(`Seed concluído com sucesso: ${users.length} usuários cadastrados.`);
+    console.log(`Seed concluído com sucesso: ${users.length} usuários cadastrados com senhas criptografadas.`);
   }
 }
