@@ -106,7 +106,7 @@ router.post("/recover-password", async (req: Request, res: Response) => {
       { expiresIn: "1h" }
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     // Tentar enviar email

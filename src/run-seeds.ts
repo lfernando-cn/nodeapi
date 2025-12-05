@@ -19,6 +19,7 @@ const runSeeds = async() =>{
         const productCategorySeeds = new CreateProductCategorySeeds();
         const productProductSeeds = new CreateProductSeeds();
         const userSeeds = new CreateUserSeeds();
+        
 
 
         
