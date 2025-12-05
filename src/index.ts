@@ -17,6 +17,7 @@ import ProductSituationController from "./controllers/ProductSituationController
 import ProductCategoryController from "./controllers/ProductCategoryController";
 import UsersController from "./controllers/UsersController";
 import TestConnectionController from "./controllers/TestConnectionController";
+import AuthController from "./controllers/AuthController";
 
 //Criar as rotas
 app.use("/", SituationsController)
@@ -25,6 +26,7 @@ app.use ("/", ProductCategoryController)
 app.use ("/", ProductSituationController)
 app.use("/", UsersController)
 app.use("/", TestConnectionController)
+app.use("/", AuthController)
 
 
 //Iniciar o servidor 
