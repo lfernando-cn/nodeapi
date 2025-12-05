@@ -108,7 +108,7 @@ router.get("/products/:id", async (req: Request, res: Response) => {
 // ==========================
 // CADASTRAR PRODUTO
 // ==========================
-router.post("/products", async (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
@@ -245,6 +245,36 @@ router.put("/products/:id", async (req: Request, res: Response) => {
     res.status(500).json({
       message: "Erro ao Atualizar o produto!",
     });
+  }
+});
+
+// ==========================
+// BUSCAR PRODUTO POR SLUG (RETORNA PRICE E DESCRIPTION)
+// ==========================
+router.get("/products/slug/:slug", async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+    const productRepository = AppDataSource.getRepository(Product);
+
+    const product = await productRepository.findOne({
+      where: { Slug: slug },
+      select: ["id", "nameProduct", "Slug", "price", "description"] as any, // seleciona somente os campos necessários
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Produto não encontrado!" });
+    }
+
+    return res.status(200).json({
+      id: product.id,
+      nameProduct: product.nameProduct,
+      slug: product.Slug,
+      price: product.price,
+      description: product.description,
+    });
+  } catch (error) {
+    console.error("Erro ao buscar produto por slug:", error);
+    return res.status(500).json({ message: "Erro ao buscar produto!" });
   }
 });
 
