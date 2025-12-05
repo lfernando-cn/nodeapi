@@ -29,6 +29,7 @@ app.use("/", TestConnectionController)
 app.use("/", AuthController)
 
 
+
 //Iniciar o servidor 
 app.listen(process.env.PORT,() => {
     console.log(`Servidor iniciado na porta ${process.env.PORT}: http://localhost:${process.env.PORT}`)
